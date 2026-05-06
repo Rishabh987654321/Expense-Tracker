@@ -1,0 +1,27 @@
+node_modules
+
+# Environment files (keep .env.example committed)
+.env
+.env.*
+!.env.example
+.env.example
+# Logs
+*.log
+logs/
+
+# Build / coverage
+dist
+coverage
+
+# Prisma client output (generated)
+/generated/prisma
+
+# Local uploads (if used in dev)
+uploads/*
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+.cursor/

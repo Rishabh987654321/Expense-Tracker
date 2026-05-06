@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 .env
+!.env.example
+
+# Vite / tooling caches
+.vite/
+.eslintcache
+
+# Hosting / platform local folders
+.vercel/
+.netlify/
 
 # Editor directories and files
 .vscode/*
@@ -23,4 +32,4 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-.env.example
+.cursor/

@@ -1,0 +1,46 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "src/server.js",
+  "scripts": {
+    "dev": "nodemon --exec tsx src/server.js",
+    "dev:worker": "nodemon --exec tsx src/worker.js",
+    "start": "tsx src/server.js",
+    "start:worker": "tsx src/worker.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "prisma:studio": "prisma studio",
+    "verify:prisma": "tsx scripts/verify-prisma.ts",
+    "db:apply-rls": "tsx prisma/apply-rls.js",
+    "db:seed": "prisma db seed",
+    "db:setup": "npm run prisma:migrate -- --name init && npm run db:apply-rls && npm run db:seed"
+  },
+  "dependencies": {
+    "@azure/storage-blob": "^12.31.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@sendgrid/mail": "^8.1.6",
+    "bcrypt": "^6.0.0",
+    "bullmq": "^5.76.5",
+    "cors": "^2.8.6",
+    "csv-stringify": "^6.7.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "ioredis": "^5.10.1",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.10.1",
+    "multer": "^2.1.1",
+    "pg": "^8.20.0",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^25.6.0",
+    "@types/pg": "^8.20.0",
+    "nodemon": "^3.1.14",
+    "prisma": "^7.8.0",
+    "tsx": "^4.21.0"
+  }
+}

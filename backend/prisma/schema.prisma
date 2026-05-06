@@ -1,0 +1,208 @@
+// Prisma schema for the Multi-Tenant Expense Tracker.
+// All tenant-scoped tables carry orgId and are protected by Postgres RLS
+// policies created in a separate raw-SQL migration. The application connects
+// as a non-BYPASSRLS role and sets `app.current_org_id` per request.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+enum ExpenseStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ExpenseCategory {
+  TRAVEL
+  MEALS
+  SOFTWARE
+  OFFICE
+  OTHER
+}
+
+enum AdminRequestType {
+  TRANSFER_ADMIN
+  REQUEST_ADMIN_ACCESS
+}
+
+enum AdminRequestStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum NotificationType {
+  EXPENSE_SUBMITTED
+  EXPENSE_APPROVED
+  EXPENSE_REJECTED
+  ROLE_UPDATED
+  ADMIN_REQUEST_CREATED
+  ADMIN_REQUEST_DECIDED
+  EMAIL_SENT
+  EMAIL_FAILED
+  INVITE_ACCEPTED
+  INVITE_REVOKED
+  NEW_TEAM_MEMBER
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  slug      String   @unique
+  name      String
+  createdAt DateTime @default(now())
+
+  users         User[]
+  invites       Invite[]
+  expenses      Expense[]
+  approvals     Approval[]
+  adminRequests AdminRequest[]
+  notifications Notification[]
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  orgId        String   @db.Uuid
+  email        String
+  passwordHash String
+  name         String
+  avatarKey    String?
+  role         Role     @default(EMPLOYEE)
+  createdAt    DateTime @default(now())
+
+  org              Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  expensesSubmitted Expense[]   @relation("Submitter")
+  approvals        Approval[]   @relation("Approver")
+  notifications    Notification[]
+  adminRequestsCreated  AdminRequest[] @relation("AdminRequestCreator")
+  adminRequestsTargeted AdminRequest[] @relation("AdminRequestTarget")
+
+  @@unique([orgId, email])
+  @@index([orgId])
+}
+
+model AdminRequest {
+  id           String             @id @default(uuid()) @db.Uuid
+  orgId        String             @db.Uuid
+  type         AdminRequestType
+  status       AdminRequestStatus @default(PENDING)
+
+  createdById  String             @db.Uuid
+  targetUserId String             @db.Uuid
+  note         String?
+
+  decidedAt    DateTime?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  createdBy User         @relation("AdminRequestCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  targetUser User        @relation("AdminRequestTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, status])
+  @@index([orgId, targetUserId, status])
+  @@index([orgId, createdById, status])
+  @@unique([orgId, type, createdById, targetUserId, status], map: "admin_request_dedupe")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  orgId     String           @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String
+  body      String?
+  data      Json?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, userId, readAt, createdAt])
+  @@index([orgId, userId, createdAt])
+}
+
+model Invite {
+  id         String    @id @default(uuid()) @db.Uuid
+  orgId      String    @db.Uuid
+  email      String
+  role       Role      @default(EMPLOYEE)
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  acceptedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  org Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+  @@index([email])
+}
+
+model Expense {
+  id          String          @id @default(uuid()) @db.Uuid
+  orgId       String          @db.Uuid
+  submitterId String          @db.Uuid
+  amountCents Int
+  currency    String          @default("USD")
+  category    ExpenseCategory
+  description String
+  expenseDate DateTime
+  status      ExpenseStatus   @default(PENDING)
+  receiptKey  String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  submitter User         @relation("Submitter", fields: [submitterId], references: [id], onDelete: Cascade)
+  approvals Approval[]
+
+  @@index([orgId, status])
+  @@index([orgId, createdAt])
+  @@index([orgId, submitterId])
+}
+
+model Approval {
+  id         String        @id @default(uuid()) @db.Uuid
+  orgId      String        @db.Uuid
+  expenseId  String        @db.Uuid
+  approverId String        @db.Uuid
+  decision   ExpenseStatus
+  note       String?
+  decidedAt  DateTime      @default(now())
+
+  org      Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  expense  Expense      @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  approver User         @relation("Approver", fields: [approverId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, expenseId])
+}
+
+// Starter models — replace with your own
+model StarterNotebook {
+  id        String         @id @default(uuid()) @db.Uuid
+  title     String
+  createdAt DateTime       @default(now())
+  pages     StarterPage[]
+}
+
+model StarterPage {
+  id         String          @id @default(uuid()) @db.Uuid
+  notebookId String          @db.Uuid
+  body       String
+  notebook   StarterNotebook @relation(fields: [notebookId], references: [id], onDelete: Cascade)
+
+  @@index([notebookId])
+}
