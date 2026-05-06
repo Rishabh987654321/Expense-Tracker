@@ -17,6 +17,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import Footer from "@/components/layout/Footer";
+import { tenantUrl } from "@/lib/tenant";
 
 const features = [
   {
@@ -88,12 +89,10 @@ const demoTenants = [
   {
     slug: "acme",
     label: "Acme Corp (demo)",
-    href: "http://acme.localhost:5173/login",
   },
   {
     slug: "globex",
     label: "Globex Inc (demo)",
-    href: "http://globex.localhost:5173/login",
   },
 ];
 
@@ -191,14 +190,14 @@ export default function Landing() {
                     {demoTenants.map((t) => (
                       <a
                         key={t.slug}
-                        href={t.href}
+                        href={tenantUrl(t.slug, "/login")}
                         className="block rounded-lg border bg-card hover:bg-accent/40 transition-colors p-4"
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div>
                             <div className="font-medium">{t.label}</div>
                             <div className="text-xs text-muted-foreground font-mono">
-                              {t.slug}.localhost:5173
+                              {tenantUrl(t.slug, "/login").replace(/^https?:\/\//, "")}
                             </div>
                           </div>
                           <ArrowRight className="size-4 text-muted-foreground mt-0.5" />

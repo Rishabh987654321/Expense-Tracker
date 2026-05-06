@@ -10,6 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useSignupOrg } from '@/api/auth';
 import { useAuthStore } from '@/stores/authStore';
 import { apiErrorMessage } from '@/api/client';
+import { isPathTenantMode } from '@/lib/tenant';
 
 const schema = z.object({
   orgName: z.string().min(2, 'Required').max(100),
@@ -26,6 +27,7 @@ const schema = z.object({
 export default function OrgSignup() {
   const setSession = useAuthStore((s) => s.setSession);
   const mutation = useSignupOrg();
+  const pathMode = isPathTenantMode();
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: { orgName: '', slug: '', name: '', email: '', password: '' },
@@ -61,10 +63,12 @@ export default function OrgSignup() {
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="slug">Subdomain</Label>
+              <Label htmlFor="slug">Organization slug</Label>
               <div className="flex items-center gap-2">
                 <Input id="slug" {...form.register('slug')} placeholder="acme" className="font-mono" />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">.localhost</span>
+                {!pathMode ? (
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">.localhost</span>
+                ) : null}
               </div>
               {form.formState.errors.slug ? (
                 <p className="text-xs text-destructive">{form.formState.errors.slug.message}</p>
@@ -97,9 +101,9 @@ export default function OrgSignup() {
             <p className="text-xs text-muted-foreground text-center">
               Already have an organization?{' '}
               <Link to="/" className="underline">
-                Visit your subdomain
+                Sign in
               </Link>{' '}
-              to sign in.
+              to continue.
             </p>
           </form>
         </CardContent>

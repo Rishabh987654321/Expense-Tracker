@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuthStore } from '@/stores/authStore';
-import { publicUrl } from '@/lib/tenant';
+import { publicUrl, tenantPath } from '@/lib/tenant';
 import { useNotifications, useMarkAllNotificationsRead, useMarkNotificationRead } from '@/api/notifications';
 import { apiErrorMessage } from '@/api/client';
 import { toast } from 'sonner';
@@ -40,7 +40,7 @@ export default function Topbar() {
 
   const onLogout = () => {
     clear();
-    window.location.href = '/login';
+    window.location.href = tenantPath('/login');
   };
 
   const unreadCount = notif?.unreadCount || 0;
@@ -172,7 +172,7 @@ export default function Topbar() {
                             } catch (err) {
                               toast.error(apiErrorMessage(err));
                             }
-                            window.location.href = `/team`;
+                            window.location.href = tenantPath('/team');
                           }}
                         >
                           View
@@ -192,7 +192,7 @@ export default function Topbar() {
                             } catch (err) {
                               toast.error(apiErrorMessage(err));
                             }
-                            window.location.href = '/team';
+                            window.location.href = tenantPath('/team');
                           }}
                         >
                           View
@@ -236,7 +236,7 @@ export default function Topbar() {
             </DropdownMenu>
           </>
         ) : (
-          <Button variant="ghost" size="sm" onClick={() => (window.location.href = '/login')}>
+          <Button variant="ghost" size="sm" onClick={() => (window.location.href = publicUrl('/login'))}>
             Log in
           </Button>
         )}

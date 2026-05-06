@@ -1,9 +1,13 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
-import { getTenantInfo, publicUrl } from '@/lib/tenant';
+import { getTenantInfo, publicUrl, tenantPath } from '@/lib/tenant';
 
 export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
+  // If VITE_API_URL isn't set, fall back to the current hostname in dev so
+  // opening the app via http://<ip>:5173 will call http://<ip>:4000.
+  baseURL:
+    import.meta.env.VITE_API_URL ||
+    `${window.location.protocol}//${window.location.hostname}:4000`,
   withCredentials: false,
 });
 
@@ -32,7 +36,7 @@ api.interceptors.response.use(
         // we were already on the public host.
         const { slug } = getTenantInfo();
         if (slug) {
-          window.location.href = '/login';
+          window.location.href = tenantPath('/login');
         } else {
           window.location.href = publicUrl('/login-help');
         }

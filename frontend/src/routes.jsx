@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { Navigate, Routes, Route } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { getTenantInfo } from '@/lib/tenant';
+import { getTenantInfo, isPathTenantMode } from '@/lib/tenant';
 import ProtectedRoute from '@/components/common/ProtectedRoute';
 import RoleRoute from '@/components/common/RoleRoute';
 import AppShell from '@/components/layout/AppShell';
@@ -31,39 +31,41 @@ function Loading() {
 export default function AppRoutes() {
   const { isPublic, slug } = getTenantInfo();
   const isAuthed = useAuthStore((s) => Boolean(s.token));
+  const pathMode = isPathTenantMode();
 
   return (
     <Suspense fallback={<Loading />}>
       <Routes>
-        {isPublic ? (
+        {pathMode ? (
           <>
+            {/* Public host routes (root). */}
             <Route path="/" element={<Landing />} />
             <Route path="/signup" element={<OrgSignup />} />
             <Route path="/login" element={<Login publicHost />} />
             <Route path="/invite/:token" element={<AcceptInvite />} />
-            <Route path="*" element={<NotFound />} />
-          </>
-        ) : (
-          <>
-            <Route
-              path="/login"
-              element={isAuthed ? <Navigate to="/dashboard" replace /> : <Login slug={slug} />}
-            />
 
+            {/* Tenant routes (path-based). */}
             <Route
+              path="/t/:slug/login"
+              element={
+                isAuthed && !isPublic ? <Navigate to={`/t/${slug}/dashboard`} replace /> : <Login slug={slug} />
+              }
+            />
+            <Route
+              path="/t/:slug"
               element={
                 <ProtectedRoute>
                   <AppShell />
                 </ProtectedRoute>
               }
             >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/expenses" element={<ExpensesList />} />
-              <Route path="/expenses/new" element={<NewExpense />} />
-              <Route path="/expenses/:id" element={<ExpenseDetail />} />
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="expenses" element={<ExpensesList />} />
+              <Route path="expenses/new" element={<NewExpense />} />
+              <Route path="expenses/:id" element={<ExpenseDetail />} />
               <Route
-                path="/approvals"
+                path="approvals"
                 element={
                   <RoleRoute allow={['ADMIN', 'MANAGER']}>
                     <Approvals />
@@ -71,7 +73,7 @@ export default function AppRoutes() {
                 }
               />
               <Route
-                path="/team"
+                path="team"
                 element={
                   <RoleRoute allow={['ADMIN', 'MANAGER', 'EMPLOYEE']}>
                     <Team />
@@ -79,7 +81,7 @@ export default function AppRoutes() {
                 }
               />
               <Route
-                path="/settings"
+                path="settings"
                 element={
                   <RoleRoute allow={['ADMIN', 'MANAGER', 'EMPLOYEE']}>
                     <Settings />
@@ -88,6 +90,66 @@ export default function AppRoutes() {
               />
               <Route path="*" element={<NotFound />} />
             </Route>
+            <Route path="*" element={<NotFound />} />
+          </>
+        ) : (
+          <>
+            {/* Subdomain mode: public vs tenant based on hostname. */}
+            {isPublic ? (
+              <>
+                <Route path="/" element={<Landing />} />
+                <Route path="/signup" element={<OrgSignup />} />
+                <Route path="/login" element={<Login publicHost />} />
+                <Route path="/invite/:token" element={<AcceptInvite />} />
+                <Route path="*" element={<NotFound />} />
+              </>
+            ) : (
+              <>
+                <Route
+                  path="/login"
+                  element={isAuthed ? <Navigate to="/dashboard" replace /> : <Login slug={slug} />}
+                />
+
+                <Route
+                  element={
+                    <ProtectedRoute>
+                      <AppShell />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/expenses" element={<ExpensesList />} />
+                  <Route path="/expenses/new" element={<NewExpense />} />
+                  <Route path="/expenses/:id" element={<ExpenseDetail />} />
+                  <Route
+                    path="/approvals"
+                    element={
+                      <RoleRoute allow={['ADMIN', 'MANAGER']}>
+                        <Approvals />
+                      </RoleRoute>
+                    }
+                  />
+                  <Route
+                    path="/team"
+                    element={
+                      <RoleRoute allow={['ADMIN', 'MANAGER', 'EMPLOYEE']}>
+                        <Team />
+                      </RoleRoute>
+                    }
+                  />
+                  <Route
+                    path="/settings"
+                    element={
+                      <RoleRoute allow={['ADMIN', 'MANAGER', 'EMPLOYEE']}>
+                        <Settings />
+                      </RoleRoute>
+                    }
+                  />
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </>
+            )}
           </>
         )}
       </Routes>

@@ -2,6 +2,7 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, Receipt, FilePlus2, ListChecks, Users, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { cn } from '@/lib/utils';
+import { tenantPath } from '@/lib/tenant';
 
 const items = [
   { to: '/dashboard',       label: 'Dashboard',  icon: LayoutDashboard, roles: ['ADMIN', 'MANAGER', 'EMPLOYEE'] },
@@ -29,7 +30,7 @@ export default function Sidebar() {
           .map(({ to, label, icon: Icon }) => (
             <NavLink
               key={to}
-              to={to}
+              to={tenantPath(to)}
               end={to === '/dashboard'}
               className={({ isActive }) =>
                 cn(

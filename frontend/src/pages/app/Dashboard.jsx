@@ -21,6 +21,7 @@ import {
 } from '@/api/analytics';
 import { useAuthStore } from '@/stores/authStore';
 import { useTeam } from '@/api/team';
+import { tenantPath } from '@/lib/tenant';
 
 export default function Dashboard() {
   const me = useAuthStore((s) => s.user);
@@ -41,7 +42,7 @@ export default function Dashboard() {
             <p className="text-sm text-muted-foreground">Your expenses and trends.</p>
           </div>
           <Button asChild>
-            <Link to="/expenses/new" className="inline-flex items-center gap-1.5">
+            <Link to={tenantPath('/expenses/new')} className="inline-flex items-center gap-1.5">
               <FilePlus2 className="size-4" />
               New expense
             </Link>
@@ -91,13 +92,13 @@ export default function Dashboard() {
             </SelectContent>
           </Select>
           <Button variant="outline" asChild>
-            <Link to="/approvals" className="inline-flex items-center gap-1.5">
+            <Link to={tenantPath('/approvals')} className="inline-flex items-center gap-1.5">
               <ListChecks className="size-4" />
               Review pending
             </Link>
           </Button>
           <Button asChild>
-            <Link to="/expenses/new" className="inline-flex items-center gap-1.5">
+            <Link to={tenantPath('/expenses/new')} className="inline-flex items-center gap-1.5">
               <FilePlus2 className="size-4" />
               New expense
             </Link>

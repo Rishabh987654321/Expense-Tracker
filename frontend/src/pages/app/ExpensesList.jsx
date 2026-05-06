@@ -28,6 +28,7 @@ import { useExpenses, buildExportUrl } from '@/api/expenses';
 import { useAuthStore } from '@/stores/authStore';
 import { CATEGORIES, formatDate, formatMoney } from '@/lib/format';
 import { api } from '@/api/client';
+import { tenantPath } from '@/lib/tenant';
 
 const STATUS_TABS = [
   { id: 'ALL',      label: 'All' },
@@ -108,7 +109,7 @@ export default function ExpensesList() {
             </Button>
           ) : null}
           <Button asChild>
-            <Link to="/expenses/new" className='flex items-center'>
+            <Link to={tenantPath('/expenses/new')} className='flex items-center'>
               <FilePlus2 className="size-4 mr-2" />
               New expense
             </Link>

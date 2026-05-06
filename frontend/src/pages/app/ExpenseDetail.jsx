@@ -11,6 +11,7 @@ import { useExpense, useDeleteExpense } from '@/api/expenses';
 import { useAuthStore } from '@/stores/authStore';
 import { formatDate, formatMoney } from '@/lib/format';
 import { api, apiErrorMessage } from '@/api/client';
+import { tenantPath } from '@/lib/tenant';
 import {
   Dialog,
   DialogContent,
@@ -79,7 +80,7 @@ export default function ExpenseDetail() {
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link to="/expenses" className='flex items-center'><ArrowLeft className="size-4 mr-1" />Back to expenses</Link>
+          <Link to={tenantPath('/expenses')} className='flex items-center'><ArrowLeft className="size-4 mr-1" />Back to expenses</Link>
         </Button>
         {canDelete ? (
           <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)} disabled={deleteMutation.isPending}>

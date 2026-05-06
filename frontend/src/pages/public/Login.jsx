@@ -17,7 +17,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useLogin } from '@/api/auth';
 import { apiErrorMessage } from '@/api/client';
-import { tenantUrl } from '@/lib/tenant';
+import { isPathTenantMode, publicUrl, tenantUrl } from '@/lib/tenant';
 
 const schema = z.object({
   email: z.string().email(),
@@ -34,6 +34,7 @@ export default function Login({ slug, publicHost }) {
   const navigate = useNavigate();
   const location = useLocation();
   const mutation = useLogin();
+  const pathMode = isPathTenantMode();
 
   const form = useForm({
     resolver: zodResolver(schema),
@@ -48,7 +49,7 @@ export default function Login({ slug, publicHost }) {
     try {
       const data = await mutation.mutateAsync(values);
       toast.success(`Welcome back, ${data.user.name.split(' ')[0]}`);
-      const target = location.state?.from?.pathname || '/dashboard';
+      const target = location.state?.from?.pathname || (isPathTenantMode() ? `/t/${slug}/dashboard` : '/dashboard');
       navigate(target, { replace: true });
     } catch (err) {
       toast.error(apiErrorMessage(err));
@@ -67,7 +68,7 @@ export default function Login({ slug, publicHost }) {
           <CardDescription>
             {publicHost
               ? 'Enter your organization slug to continue.'
-              : `Logging into ${slug ? `${slug}.localhost` : 'your organization'}.`}
+              : `Logging into ${slug || 'your organization'}.`}
           </CardDescription>
         </CardHeader>
 
@@ -76,10 +77,12 @@ export default function Login({ slug, publicHost }) {
             <CardContent>
               <form className="space-y-4" onSubmit={slugForm.handleSubmit(goToTenant)}>
                 <div className="grid gap-2">
-                  <Label htmlFor="slug">Organization subdomain</Label>
+                  <Label htmlFor="slug">Organization slug</Label>
                   <div className="flex items-center gap-2">
                     <Input id="slug" {...slugForm.register('slug')} placeholder="acme" className="font-mono" />
-                    <span className="text-sm text-muted-foreground whitespace-nowrap">.localhost</span>
+                    {!pathMode ? (
+                      <span className="text-sm text-muted-foreground whitespace-nowrap">.localhost</span>
+                    ) : null}
                   </div>
                   {slugForm.formState.errors.slug ? (
                     <p className="text-xs text-destructive">
@@ -101,7 +104,7 @@ export default function Login({ slug, publicHost }) {
               <AlertTitle>Tenant: {slug}</AlertTitle>
               <AlertDescription className="text-xs">
                 Wrong organization?&nbsp;
-                <a href={tenantUrl('app', '/login')} className="underline">
+                <a href={publicUrl('/login')} className="underline">
                   Switch
                 </a>.
               </AlertDescription>
