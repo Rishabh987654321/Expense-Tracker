@@ -1,4 +1,4 @@
-import { Bell, LogOut } from 'lucide-react';
+import { Bell, LogOut, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -29,7 +29,7 @@ function initials(name) {
     .toUpperCase();
 }
 
-export default function Topbar() {
+export default function Topbar({ onMenuClick }) {
   const user = useAuthStore((s) => s.user);
   const clear = useAuthStore((s) => s.clear);
   const { data: notif, isLoading: notifLoading } = useNotifications({ enabled: Boolean(user) });
@@ -82,7 +82,17 @@ export default function Topbar() {
 
   return (
     <header className="h-14 border-b bg-background flex items-center justify-between px-4 md:px-6">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 md:gap-3">
+        {onMenuClick ? (
+          <button
+            type="button"
+            aria-label="Open menu"
+            onClick={onMenuClick}
+            className="md:hidden inline-flex items-center justify-center rounded-md p-2 hover:bg-accent"
+          >
+            <Menu className="size-5" />
+          </button>
+        ) : null}
         <span className="text-sm font-medium">Expense Tracker</span>
       </div>
       <div className="flex items-center gap-3">
